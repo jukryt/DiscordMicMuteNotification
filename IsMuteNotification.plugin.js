@@ -2,7 +2,7 @@
  * @name MicMuteNotification
  * @description Повторяющийся звуковой сигнал при выключенном микрофоне
  * @author jukryt
- * @version 3.0.0
+ * @version 3.1.0
  * @updateUrl https://raw.githubusercontent.com/jukryt/DiscordMicMuteNotification/main/IsMuteNotification.plugin.js
  * @source https://github.com/jukryt/DiscordMicMuteNotification
  */
@@ -13,7 +13,7 @@ class MicMuteNotification {
     static defaultVolume = 0.1;
     static defaultInterval = 3000;
     static instance;
-    
+
     getName() {
         return "MicMuteNotification";
     }
@@ -28,12 +28,11 @@ class MicMuteNotification {
 
     load() {
         MicMuteNotification.instance = this;
+
         this.settings = {
-            volume: this.getData("volume"),
-            interval: this.getData("interval")
+            volume: this.getData("volume") ?? MicMuteNotification.defaultVolume,
+            interval: this.getData("interval") ?? MicMuteNotification.defaultInterval
         };
-        this.settings.volume = this.settings.volume ?? MicMuteNotification.defaultVolume;
-        this.settings.interval = this.settings.interval ?? MicMuteNotification.defaultInterval;
 
         this.voiceSettings = BdApi.Webpack.getByKeys("getEchoCancellation");
         this.isMute = false;
@@ -67,40 +66,45 @@ class MicMuteNotification {
     }
 
     getSettingsPanel() {
-        const volumeSetting = {
-            id: "volume",
-            name: "Volume",
-            type: "slider",
-            units: "%",
-            min: 0,
-            max: 100,
-            markers: [0, 25, 50, 75, 100],
-            value: this.settings.volume * 100
-        };
-
-        const intervalSetting = {
-            id: "interval",
-            name: "Interval",
-            units: "ms",
-            min: 0,
-            max: 5000,
-            markers: [0, 1000, 2000, 3000, 4000, 5000],
-            type: "slider",
-            value: this.settings.interval
-        };
-
         const self = this;
+        const settings = [{
+            id: "general",
+            type: "category",
+            collapsible: false,
+            showDivider: false,
+            shown: true,
+            settings: [
+                {
+                    id: "volume",
+                    name: "Volume",
+                    type: "slider",
+                    units: "%",
+                    min: 0,
+                    max: 100,
+                    markers: [0, 25, 50, 75, 100],
+                    value: this.settings.volume * 100,
+                    defaultValue: MicMuteNotification.defaultVolume,
+                    onChange: v => {self.setData("volume", v / 100);}
+                },
+                {
+                    id: "interval",
+                    name: "Interval",
+                    type: "slider",
+                    units: "ms",            
+                    min: 0,
+                    max: 5000,
+                    markers: [0, 1000, 2000, 3000, 4000, 5000],
+                    value: this.settings.interval,
+                    defaultValue: MicMuteNotification.defaultInterval,
+                    onChange: v => {self.setData("interval", v);}
+                }
+            ]
+        }];
+
         return BdApi.UI.buildSettingsPanel({
-            settings: [volumeSetting, intervalSetting],
-            onChange: (_, id, value) => {
-                if (id === "volume") {
-                    self.setData("volume", value / 100);
-                }
-                if (id === "interval") {
-                    self.setData("interval", value);
-                }
-                self.restart()
-                }});
+            settings: settings,
+            onChange: () => {self.restart();}
+            });
     }
 
     switchNotificationIfNeed(isMute) {
