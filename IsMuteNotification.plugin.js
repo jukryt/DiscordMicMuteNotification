@@ -2,7 +2,7 @@
  * @name MicMuteNotification
  * @description Повторяющийся звуковой сигнал при выключенном микрофоне
  * @author jukryt
- * @version 2.0.1
+ * @version 2.1.0
  * @updateUrl https://raw.githubusercontent.com/jukryt/DiscordMicMuteNotification/main/IsMuteNotification.plugin.js
  * @source https://github.com/jukryt/DiscordMicMuteNotification
  */
@@ -19,11 +19,11 @@ class MicMuteNotification {
     }
 
     setData(key, value) {
-        BdApi.setData(this.getName(), key, value);
+        BdApi.Data.save(this.getName(), key, value);
     }
 
     getData(key) {
-        return BdApi.getData(this.getName(), key);
+        return BdApi.Data.load(this.getName(), key);
     }
 
     load() {
@@ -31,7 +31,7 @@ class MicMuteNotification {
         let volume = this.getData("volume");
         let interval = this.getData("interval");
 
-        this.voiceSettings = BdApi.findModuleByProps("getEchoCancellation");
+        this.voiceSettings = BdApi.Webpack.getByKeys("getEchoCancellation");
         this.isMute = false;
         this.intervalId = null;
         this.volume = volume ?? MicMuteNotification.defaultVolume;
